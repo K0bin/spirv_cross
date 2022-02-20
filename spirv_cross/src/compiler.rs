@@ -353,7 +353,7 @@ impl<TTargetData> Compiler<TTargetData> {
 
     pub fn get_entry_points(&self) -> Result<Vec<spirv::EntryPoint>, ErrorCode> {
         let mut entry_points_raw = ptr::null_mut();
-        let mut entry_points_raw_length = 0 as usize;
+        let mut entry_points_raw_length = 0 as br::size_t;
 
         unsafe {
             check!(br::sc_internal_compiler_get_entry_points(
@@ -364,7 +364,7 @@ impl<TTargetData> Compiler<TTargetData> {
 
             let entry_points = (0..entry_points_raw_length)
                 .map(|offset| {
-                    let entry_point_raw_ptr = entry_points_raw.add(offset);
+                    let entry_point_raw_ptr = entry_points_raw.add(offset as usize);
                     let entry_point_raw = read_from_ptr::<br::ScEntryPoint>(entry_point_raw_ptr);
                     let name = read_string_from_ptr(entry_point_raw.name)?;
                     let entry_point = spirv::EntryPoint {
@@ -397,7 +397,7 @@ impl<TTargetData> Compiler<TTargetData> {
 
     pub fn get_active_buffer_ranges(&self, id: u32) -> Result<Vec<spirv::BufferRange>, ErrorCode> {
         let mut active_buffer_ranges_raw = ptr::null_mut();
-        let mut active_buffer_ranges_raw_length = 0 as usize;
+        let mut active_buffer_ranges_raw_length = 0 as br::size_t;
 
         unsafe {
             check!(br::sc_internal_compiler_get_active_buffer_ranges(
@@ -409,13 +409,13 @@ impl<TTargetData> Compiler<TTargetData> {
 
             let active_buffer_ranges = (0..active_buffer_ranges_raw_length)
                 .map(|offset| {
-                    let active_buffer_range_raw_ptr = active_buffer_ranges_raw.add(offset);
+                    let active_buffer_range_raw_ptr = active_buffer_ranges_raw.add(offset as usize);
                     let active_buffer_range_raw =
                         read_from_ptr::<br::ScBufferRange>(active_buffer_range_raw_ptr);
                     spirv::BufferRange {
                         index: active_buffer_range_raw.index,
-                        offset: active_buffer_range_raw.offset,
-                        range: active_buffer_range_raw.range,
+                        offset: active_buffer_range_raw.offset as usize,
+                        range: active_buffer_range_raw.range as usize,
                     }
                 })
                 .collect::<Vec<_>>();
@@ -455,7 +455,7 @@ impl<TTargetData> Compiler<TTargetData> {
         &self,
     ) -> Result<Vec<spirv::SpecializationConstant>, ErrorCode> {
         let mut constants_raw = ptr::null_mut();
-        let mut constants_raw_length = 0 as usize;
+        let mut constants_raw_length = 0 as br::size_t;
 
         unsafe {
             check!(br::sc_internal_compiler_get_specialization_constants(
@@ -466,7 +466,7 @@ impl<TTargetData> Compiler<TTargetData> {
 
             let constants = (0..constants_raw_length)
                 .map(|offset| {
-                    let constant_raw_ptr = constants_raw.add(offset);
+                    let constant_raw_ptr = constants_raw.add(offset as usize);
                     let constant_raw =
                         read_from_ptr::<br::ScSpecializationConstant>(constant_raw_ptr);
 
@@ -511,9 +511,9 @@ impl<TTargetData> Compiler<TTargetData> {
             ));
 
             let raw = read_from_ptr::<br::ScType>(type_ptr);
-            let member_types = read_into_vec_from_ptr(raw.member_types, raw.member_types_size);
-            let array = read_into_vec_from_ptr(raw.array, raw.array_size);
-            let array_size_literal = read_into_vec_from_ptr(raw.array_size_literal, raw.array_size);
+            let member_types = read_into_vec_from_ptr(raw.member_types, raw.member_types_size as usize);
+            let array = read_into_vec_from_ptr(raw.array, raw.array_size as usize);
+            let array_size_literal = read_into_vec_from_ptr(raw.array_size_literal, raw.array_size as usize);
             let image = raw.image;
             let result = Type::from_raw(raw.type_, raw.vecsize, raw.columns, member_types, array, array_size_literal, image)?;
 
@@ -654,6 +654,7 @@ impl<TTargetData> Compiler<TTargetData> {
                 fill_resources(&shader_resources_raw.push_constant_buffers)?;
             let separate_images = fill_resources(&shader_resources_raw.separate_images)?;
             let separate_samplers = fill_resources(&shader_resources_raw.separate_samplers)?;
+            let acceleration_structures = fill_resources(&shader_resources_raw.acceleration_structures)?;
 
             Ok(spirv::ShaderResources {
                 uniform_buffers,
@@ -667,6 +668,7 @@ impl<TTargetData> Compiler<TTargetData> {
                 push_constant_buffers,
                 separate_images,
                 separate_samplers,
+                acceleration_structures,
             })
         }
     }
@@ -703,7 +705,7 @@ impl<TTargetData> Compiler<TTargetData> {
             check!(br::sc_internal_compiler_rename_interface_variable(
                 self.sc_compiler,
                 resources_ptr,
-                resources_names.len(),
+                resources_names.len() as br::size_t,
                 location,
                 new_name_ptr,
             ));

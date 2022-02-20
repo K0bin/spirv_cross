@@ -134,7 +134,7 @@ impl spirv::Parse<Target> for spirv::Ast<Target> {
                 check!(br::sc_internal_compiler_glsl_new(
                     &mut compiler,
                     module.words.as_ptr() as *const u32,
-                    module.words.len() as usize,
+                    module.words.len() as br::size_t,
                 ));
             }
 
@@ -250,7 +250,7 @@ impl spirv::Ast<Target> {
         self.build_combined_image_samplers()?;
         unsafe {
             let mut samplers_raw: *const br::ScCombinedImageSampler = std::ptr::null();
-            let mut samplers_raw_length: usize = 0;
+            let mut samplers_raw_length: br::size_t = 0;
 
             check!(br::sc_internal_compiler_glsl_get_combined_image_samplers(
                 self.compiler.sc_compiler,
@@ -258,7 +258,7 @@ impl spirv::Ast<Target> {
                 &mut samplers_raw_length as _,
             ));
 
-            let samplers = read_into_vec_from_ptr(samplers_raw, samplers_raw_length)
+            let samplers = read_into_vec_from_ptr(samplers_raw, samplers_raw_length as usize)
                 .iter()
                 .map(|sc| spirv::CombinedImageSampler {
                     combined_id: sc.combined_id,

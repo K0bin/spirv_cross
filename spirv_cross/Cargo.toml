@@ -21,5 +21,5 @@ msl = []
 cc = { version = "1", features = ["parallel"] }
 
 [target.wasm32-unknown-unknown.dependencies]
-wasm-bindgen = "0.2.33"
-js-sys = "0.3.10"
+wasm-bindgen = "0.2.79"
+js-sys = "0.3.56"
